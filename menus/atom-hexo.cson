@@ -1,0 +1,13 @@
+# See https://atom.io/docs/latest/creating-a-package#menus for more details
+'menu': [
+  {
+    'label': 'Packages'
+    'submenu': [
+      'label': 'Hexo'
+      'submenu': [
+        { 'label': 'Generate', 'command': 'atom-hexo:generate' },
+        { 'label': 'Deploy', 'command': 'atom-hexo:deploy' }
+      ]
+    ]
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "name": "atom-hexo",
+  "main": "./lib/atom-hexo",
+  "version": "0.1.0",
+  "description": "Hexo for the Atom Editor.",
+  "activationEvents": [
+    "atom-hexo:generate",
+    "atom-hexo:deploy"
+  ],
+  "repository": "https://github.com/heroicyang/atom-hexo",
+  "author": {
+    "name": "Heroic Yang",
+    "email": "me@heroicyang.com",
+    "url": "http://heroicyang.com/"
+  },
+  "license": "MIT",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+    "lodash": "^2.4.1"
+  }
+}
