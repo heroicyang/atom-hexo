@@ -1,7 +1,7 @@
 {
   "name": "atom-hexo",
   "main": "./lib/hexo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Hexo for the Atom Editor.",
   "activationEvents": [
     "atom-hexo:new-post",
@@ -17,8 +17,5 @@
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"
-  },
-  "dependencies": {
-    "lodash": "^2.4.1"
   }
 }
