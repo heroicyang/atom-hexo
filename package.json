@@ -6,7 +6,8 @@
   "activationEvents": [
     "atom-hexo:new-post",
     "atom-hexo:new-page",
-    "atom-hexo:new-draft"
+    "atom-hexo:new-draft",
+    "atom-hexo:generate"
   ],
   "repository": "https://github.com/heroicyang/atom-hexo",
   "author": {
