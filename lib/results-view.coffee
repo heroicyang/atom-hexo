@@ -10,11 +10,14 @@ class ResultsView extends View
 
   attach: ->
     atom.workspaceView.prependToBottom(this) unless @hasParent()
-    @resultsPanel.empty() if @resultsPanel.children()
 
   detach: ->
     return unless @hasParent()
+    @empty()
     super()
+
+  empty: ->
+    @resultsPanel.empty() if @resultsPanel.children()
 
   display: (css, line) ->
     @resultsPanel.append "<pre class='line #{css}'>#{line}</pre>"

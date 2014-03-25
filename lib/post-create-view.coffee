@@ -28,6 +28,7 @@ class PostCreateView extends View
 
   attach: ->
     atom.workspaceView.prependToBottom(this) unless @hasParent()
+    atom.workspaceView.trigger 'hexo:close-results'
 
   detach: () ->
     return unless @hasParent()

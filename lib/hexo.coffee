@@ -8,13 +8,18 @@ module.exports =
     @resultsView = new ResultsView(@resultsViewState)
 
     atom.workspaceView.on 'atom-hexo:generate', =>
+      @resultsView?.empty()
       @generate()
 
     atom.workspaceView.on 'atom-hexo:deploy', =>
+      @resultsView?.empty()
       @deploy()
 
     atom.workspaceView.on 'hexo:show-results', (event, data) =>
       @display data.css, data.line
+
+    atom.workspaceView.on 'hexo:close-results', =>
+      @resultsView?.detach()
 
     atom.workspaceView.on 'core:cancel core:close', =>
       @postCreateView?.detach()
