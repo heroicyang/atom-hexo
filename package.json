@@ -1,13 +1,14 @@
 {
   "name": "atom-hexo",
   "main": "./lib/hexo",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Hexo for the Atom Editor.",
   "activationEvents": [
     "atom-hexo:new-post",
     "atom-hexo:new-page",
     "atom-hexo:new-draft",
-    "atom-hexo:generate"
+    "atom-hexo:generate",
+    "atom-hexo:deploy"
   ],
   "repository": "https://github.com/heroicyang/atom-hexo",
   "author": {

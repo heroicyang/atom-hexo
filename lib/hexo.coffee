@@ -1,41 +1,82 @@
+{$, BufferedProcess} = require 'atom'
 PostCreateView = require './post-create-view'
-ConsoleView = require './console-view'
+ResultsView = require './results-view'
 
 module.exports =
-  activate: ({@postCreateViewState, @consoleViewState}={}) ->
-    atom.workspaceView.command 'atom-hexo:new-post', =>
-      @createPostCreateView()
+  activate: ({@postCreateViewState, @resultsViewState} = {}) ->
+    @postCreateView = new PostCreateView(@postCreateViewState)
+    @resultsView = new ResultsView(@resultsViewState)
 
-    atom.workspaceView.command 'atom-hexo:new-page', =>
-      @createPostCreateView 'page'
+    atom.workspaceView.on 'atom-hexo:generate', =>
+      @generate()
 
-    atom.workspaceView.command 'atom-hexo:new-draft', =>
-      @createPostCreateView 'draft'
+    atom.workspaceView.on 'atom-hexo:deploy', =>
+      @deploy()
 
-    atom.workspaceView.command 'atom-hexo:generate', =>
-      @executeConsoleCommand 'generate'
+    atom.workspaceView.on 'hexo:show-results', (event, data) =>
+      @display data.css, data.line
 
-  createPostCreateView: (layout = 'post') ->
-    if not @postCreateView
-      @postCreateView = new PostCreateView(serializeState: @postCreateViewState, layout: layout)
-    else
-      @postCreateView.setPostLayout(layout)
+    atom.workspaceView.on 'core:cancel core:close', =>
+      @postCreateView?.detach()
+      @resultsView?.detach()
 
-    @postCreateView.showPostCreateEditor()
+  generate: ->
+    return if @processing()
 
-  executeConsoleCommand: (command) ->
-    if not @consoleView
-      @consoleView = new ConsoleView(@consoleViewState)
+    command = 'hexo'
+    args = ['generate']
+    options =
+      cwd: atom.project.getPath()
+      env: process.env
 
-    if @consoleView.bufferedProcess? and @consoleView.bufferedProcess.process?
-      @consoleView.display 'warning', 'Other commands are being executed!'
-    else
-      switch command
-        when 'generate' then @consoleView.generate()
+    stdout = (output) =>
+      @display 'stdout', output
+
+    stderr = (stderr) =>
+      @display 'stderr', stderr
+    
+    exit = (code) =>
+      @stop()
+      console.log "Exited with #{code}"
+
+    @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
+
+  deploy: ->
+    return if @processing()
+
+    command = 'hexo'
+    args = ['generate', '--deploy']
+    options =
+      cwd: atom.project.getPath()
+      env: process.env
+
+    stdout = (output) =>
+      @display 'stdout', output
+
+    stderr = (stderr) =>
+      @display 'stderr', stderr
+    
+    exit = (code) =>
+      @stop()
+      console.log "Exited with #{code}"
+
+    @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
+
+  processing: ->
+    @bufferedProcess? and @bufferedProcess.process?
+
+  stop: ->
+    if @bufferedProcess? and @bufferedProcess.process?
+      @bufferedProcess.kill()
+
+  display: (css, line) ->
+    @resultsView?.attach()
+    @resultsView?.display css, line
 
   deactivate: ->
-    @postCreateView?.destroy()
+    @postCreateView?.detach()
+    @resultsView?.detach()
 
   serialize: ->
     postCreateViewState: @postCreateView?.serialize() ? @postCreateViewState
-    consoleViewState: @consoleView?.serialize() ? @consoleViewState
+    resultsViewState: @resultsView?.serialize() ? @resultsViewState

@@ -12,42 +12,70 @@ class PostCreateView extends View
 
         @subview 'postCreateEditor', new EditorView(mini: true)
 
-  initialize: ({serializeState, @layout}={}) ->
+  initialize: (serializeState) ->
     @handleEvents()
 
-  showPostCreateEditor: ->
-    atom.workspaceView.prependToBottom(this) if not @hasParent()
+    atom.workspaceView.command 'atom-hexo:new-post', =>
+      @showPostCreateEditor()
 
-    @setEditorLabel()
-    @postCreateEditor.focus()
-    @postCreateEditor.getEditor().selectAll()
+    atom.workspaceView.command 'atom-hexo:new-page', =>
+      @showPostCreateEditor 'page'
+
+    atom.workspaceView.command 'atom-hexo:new-draft', =>
+      @showPostCreateEditor 'draft'
+
+  serialize: ->
+
+  attach: ->
+    atom.workspaceView.prependToBottom(this) unless @hasParent()
+
+  detach: () ->
+    return unless @hasParent()
+    super()
 
   handleEvents: ->
     @postCreateEditor.on 'core:confirm', =>
       @createPost @postCreateEditor.getText()
 
-  setPostLayout: (layout) ->
-    @layout = layout
+  showPostCreateEditor: (@layout = 'post') ->
+    @attach()
+    @setEditorLabel()
+    @postCreateEditor.focus()
+    @postCreateEditor.getEditor().selectAll()
 
   setEditorLabel: ->
-    editorLabel = "#{(@layout.substr 0, 1).toUpperCase()}#{@layout.substr(1)} Title: "
+    editorLabel = "#{@layout[0...1].toUpperCase()}#{@layout[1..]} Title: "
     @editorLabel.text(editorLabel)
 
   createPost: (title) ->
-    process.chdir atom.project.getPath()
+    hexoPath = atom.project.getPath()
+    return unless title and hexoPath
 
     command = 'hexo'
     args = ['new', @layout, title]
     options =
-      cwd: atom.project.getPath()
+      cwd: hexoPath
       env: process.env
+
     stdout = (output) =>
-      postFile = output.substr output.indexOf(atom.project.getPath())
-      postFile = postFile.replace '\n', ''
-
-      atom.workspaceView.open(postFile).done () =>
+      if -1 != output.indexOf 'Usage'
         @detach()
-    stderr = (stderr) ->
-      console.log(stderr)
+        data = 
+          css: 'warning'
+          line: 'Please use the Atom to open your Hexo folder as a project!'
+        atom.workspaceView.trigger 'hexo:show-results', data
+      else
+        postFile = output[output.indexOf(atom.project.getPath())..]
+        postFile = postFile.replace '\n', ''
 
-    @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr})
+        atom.workspaceView.open(postFile).done () =>
+          @detach()
+
+    stderr = (stderr) =>
+      @detach()
+      data = 
+          css: 'stderr'
+          line: stderr
+        atom.workspaceView.trigger 'hexo:show-results', data
+
+    PostCreateView.bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr})
