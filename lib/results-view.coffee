@@ -13,10 +13,9 @@ class ResultsView extends View
 
   detach: ->
     return unless @hasParent()
-    @empty()
     super()
 
-  empty: ->
+  clear: ->
     @resultsPanel.empty() if @resultsPanel.children()
 
   display: (css, line) ->

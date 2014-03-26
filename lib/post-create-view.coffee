@@ -63,7 +63,7 @@ class PostCreateView extends View
         @detach()
         data = 
           css: 'warning'
-          line: 'Please use the Atom to open your Hexo folder as a project!'
+          line: 'Please open your Hexo folder as the root project!'
         atom.workspaceView.trigger 'hexo:show-results', data
       else
         postFile = output[output.indexOf(atom.project.getPath())..]

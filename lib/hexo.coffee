@@ -1,4 +1,4 @@
-{$, BufferedProcess} = require 'atom'
+{BufferedProcess} = require 'atom'
 PostCreateView = require './post-create-view'
 ResultsView = require './results-view'
 
@@ -8,17 +8,18 @@ module.exports =
     @resultsView = new ResultsView(@resultsViewState)
 
     atom.workspaceView.on 'atom-hexo:generate', =>
-      @resultsView?.empty()
-      @generate()
+      @resultsView?.clear()
+      @generate() unless @processing()
 
     atom.workspaceView.on 'atom-hexo:deploy', =>
-      @resultsView?.empty()
-      @deploy()
+      @resultsView?.clear()
+      @deploy() unless @processing()
 
     atom.workspaceView.on 'hexo:show-results', (event, data) =>
       @display data.css, data.line
 
     atom.workspaceView.on 'hexo:close-results', =>
+      @resultsView?.clear()
       @resultsView?.detach()
 
     atom.workspaceView.on 'core:cancel core:close', =>
@@ -26,8 +27,6 @@ module.exports =
       @resultsView?.detach()
 
   generate: ->
-    return if @processing()
-
     command = 'hexo'
     args = ['generate']
     options =
@@ -35,20 +34,22 @@ module.exports =
       env: process.env
 
     stdout = (output) =>
-      @display 'stdout', output
+      result = @filterOutput(output)
+      if result
+        @display result.css, result.line
+      else
+        @display 'stdout', output
 
     stderr = (stderr) =>
       @display 'stderr', stderr
     
     exit = (code) =>
       @stop()
-      console.log "Exited with #{code}"
+      @display 'success', 'Hexo `generate` command execute successfully!' unless @warning
 
     @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
 
   deploy: ->
-    return if @processing()
-
     command = 'hexo'
     args = ['generate', '--deploy']
     options =
@@ -56,16 +57,26 @@ module.exports =
       env: process.env
 
     stdout = (output) =>
-      @display 'stdout', output
+      result = @filterOutput(output)
+      if result
+        @display result.css, result.line
+      else
+        @display 'stdout', output
 
     stderr = (stderr) =>
       @display 'stderr', stderr
     
     exit = (code) =>
       @stop()
-      console.log "Exited with #{code}"
+      @display 'success', 'Hexo `deploy` command execute successfully!' unless @warning
 
     @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
+
+  filterOutput: (output) ->
+    if -1 != output.indexOf 'Usage'
+      @warning = true
+      css: 'warning'
+      line: 'Please open your Hexo folder as the root project!'
 
   processing: ->
     @bufferedProcess? and @bufferedProcess.process?
@@ -75,6 +86,9 @@ module.exports =
       @bufferedProcess.kill()
 
   display: (css, line) ->
+    return unless line
+    line = line.replace /(\[\d+m)/g, ''
+
     @resultsView?.attach()
     @resultsView?.display css, line
 
