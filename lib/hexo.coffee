@@ -34,18 +34,13 @@ module.exports =
       env: process.env
 
     stdout = (output) =>
-      result = @filterOutput(output)
-      if result
-        @display result.css, result.line
-      else
-        @display 'stdout', output
+      @displayOutput(output)
 
     stderr = (stderr) =>
-      @display 'stderr', stderr
+      @displayError stderr
     
     exit = (code) =>
-      @stop()
-      @display 'success', 'Hexo `generate` command execute successfully!' unless @warning
+      @processExit code, 'generate'
 
     @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
 
@@ -57,26 +52,48 @@ module.exports =
       env: process.env
 
     stdout = (output) =>
-      result = @filterOutput(output)
-      if result
-        @display result.css, result.line
-      else
-        @display 'stdout', output
+      @displayOutput(output)
 
     stderr = (stderr) =>
-      @display 'stderr', stderr
+      @displayError stderr
     
     exit = (code) =>
-      @stop()
-      @display 'success', 'Hexo `deploy` command execute successfully!' unless @warning
+      @processExit code, 'deploy'
 
     @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
 
-  filterOutput: (output) ->
+  displayOutput: (output) ->
     if -1 != output.indexOf 'Usage'
-      @warning = true
-      css: 'warning'
-      line: 'Please open your Hexo folder as the root project!'
+      @hasWarning = true
+      css = 'warning'
+      line = 'Please open your Hexo folder as the root project!'
+    else
+      css = 'stdout'
+      line = output
+
+    @display css, line
+
+  displayError: (stderr) ->
+    @hasError = true
+    # fix output when deploy to github
+    if /(:|\/)([^\/]+)\/([^\/]+)\.git\/?/.test(stderr) or /([\d\w]+)..(\d\w+)/.test(stderr)
+      @hasError = false
+      @display 'stdout', stderr
+    else
+      @display 'stderr', stderr
+
+  processExit: (code, cmd) ->
+    if code is 0
+      if @hasError
+        @display 'stderr', "Error!!! For details, please see the log!"
+      else if not @hasWarning
+        @display 'success', "Hexo `#{cmd}` command execute successfully!"
+    else
+      @display 'stderr', 'Oops...Seems wrong somewhere!'
+
+    @hasWarning = @hasError = false
+
+    @stop()
 
   processing: ->
     @bufferedProcess? and @bufferedProcess.process?
