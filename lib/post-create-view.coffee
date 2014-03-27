@@ -49,8 +49,16 @@ class PostCreateView extends View
     @editorLabel.text(editorLabel)
 
   createPost: (title) ->
+    return unless title
+
     hexoPath = atom.project.getPath()
-    return unless title and hexoPath
+    projectPathError = 
+      css: 'warning'
+      line: 'Please open your Hexo folder as the root project!'
+
+    if not hexoPath
+      atom.workspaceView.trigger 'hexo:show-results', projectPathError
+      return
 
     command = 'hexo'
     args = ['new', @layout, title]
@@ -61,10 +69,7 @@ class PostCreateView extends View
     stdout = (output) =>
       if -1 != output.indexOf 'Usage'
         @detach()
-        data = 
-          css: 'warning'
-          line: 'Please open your Hexo folder as the root project!'
-        atom.workspaceView.trigger 'hexo:show-results', data
+        atom.workspaceView.trigger 'hexo:show-results', projectPathError
       else
         postFile = output[output.indexOf(atom.project.getPath())..]
         postFile = postFile.replace '\n', ''
