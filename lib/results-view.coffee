@@ -3,8 +3,8 @@
 module.exports =
 class ResultsView extends View
   @content: ->
-    @div tabIndex: -1, class: 'atom-hexo panel tool-panel panel-bottom', =>
-      @div outlet: 'resultsPanel', class: 'panel-body results-panel'
+    @div tabIndex: -1, class: 'atom-hexo results-view tool-panel panel-bottom', =>
+      @div outlet: 'contentPanel', class: 'padded content-panel'
 
   initialize: (serializeState) ->
 
@@ -16,8 +16,8 @@ class ResultsView extends View
     super()
 
   clear: ->
-    @resultsPanel.empty() if @resultsPanel.children()
+    @contentPanel.empty() if @contentPanel.children()
 
-  display: (css, line) ->
-    @resultsPanel.append "<pre class='line #{css}'>#{line}</pre>"
-    @resultsPanel.scrollTop @resultsPanel[0].scrollHeight
+  display: (message, className='output') ->
+    @contentPanel.append "<pre class='line #{className}'>#{message}</pre>"
+    @contentPanel.scrollTop @contentPanel[0].scrollHeight

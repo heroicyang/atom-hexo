@@ -5,39 +5,37 @@
 @import "ui-variables";
 
 .atom-hexo {
-  &.panel {
-    margin-bottom: 0;
-    background: #2b303b;
-  }
+  &.results-view {
+    background-color: @app-background-color;
 
-  .results-panel {
-    border-top: 4px solid #1c1f26;
-    padding: 0;
-    height: 300px;
-    overflow: auto;
-    box-shadow: inset 0 4px 10px -4px #222;
-    -webkit-box-shadow: inset 0 4px 10px -4px #222;
+    .content-panel {
+      border-top: 4px solid @panel-heading-border-color;
+      height: 300px;
+      overflow: auto;
+      box-shadow: inset 0 4px 8px -4px @base-border-color;
+      -webkit-box-shadow: inset 0 4px 8px -4px @base-border-color;
 
-    .line {
-      background: inherit;
-      border-radius: 0;
-      padding: 5px 9.5px;
-    }
+      .line {
+        background: inherit;
+        border-radius: 0;
+        padding: 0;
+      }
 
-    .warning {
-      color: #8a6d3b;
-    }
+      .warning {
+        color: @text-color-warning;
+      }
 
-    .success {
-      color: #3c763d;
-    }
+      .success {
+        color: @text-color-success;
+      }
 
-    .stdout {
-      color: #d9edf7;
-    }
+      .stdout {
+        color: @text-color-info;
+      }
 
-    .stderr {
-      color: #a94442;
+      .stderr {
+        color: @text-color-error;
+      }
     }
   }
 

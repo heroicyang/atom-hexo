@@ -28,7 +28,7 @@ class PostFormView extends View
 
   attach: ->
     atom.workspaceView.prependToBottom(this) unless @hasParent()
-    atom.workspaceView.trigger 'hexo:close-results'
+    atom.workspaceView.trigger 'hexo:hide-results'
 
   detach: () ->
     return unless @hasParent()
@@ -53,8 +53,8 @@ class PostFormView extends View
 
     hexoPath = atom.project.getPath()
     projectPathError = 
-      css: 'warning'
-      line: 'Please open your Hexo folder as the root project!'
+      message: 'Please open your Hexo folder as the root project!'
+      className: 'warning'
 
     if not hexoPath
       return @displayError projectPathError
@@ -76,7 +76,7 @@ class PostFormView extends View
           @detach()
 
     stderr = (stderr) =>
-      @displayError css: 'stderr', line: stderr
+      @displayError message: stderr, className: 'stderr'
 
     PostFormView.bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr})
 

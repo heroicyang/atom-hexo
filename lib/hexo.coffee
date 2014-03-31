@@ -16,9 +16,9 @@ module.exports =
       @deploy() unless @processing()
 
     atom.workspaceView.on 'hexo:show-results', (event, data) =>
-      @display data.css, data.line
+      @display data.message, data.className
 
-    atom.workspaceView.on 'hexo:close-results', =>
+    atom.workspaceView.on 'hexo:hide-results', =>
       @resultsView?.clear()
       @resultsView?.detach()
 
@@ -65,31 +65,31 @@ module.exports =
   displayOutput: (output) ->
     if -1 != output.indexOf 'Usage'
       @hasWarning = true
-      css = 'warning'
-      line = 'Please open your Hexo folder as the root project!'
+      className = 'warning'
+      message = 'Please open your Hexo folder as the root project!'
     else
-      css = 'stdout'
-      line = output
+      className = 'stdout'
+      message = output
 
-    @display css, line
+    @display message, className
 
   displayError: (stderr) ->
     @hasError = true
     # fix output when deploy to github
     if /(:|\/)([^\/]+)\/([^\/]+)\.git\/?/.test(stderr) or /([\d\w]+)..(\d\w+)/.test(stderr)
       @hasError = false
-      @display 'stdout', stderr
+      @display stderr, 'stdout'
     else
-      @display 'stderr', stderr
+      @display stderr, 'stderr'
 
   processExit: (code, cmd) ->
     if code is 0
       if @hasError
-        @display 'stderr', "Error!!! For details, please see the log!"
+        @display 'Error!!! For details, please see the log!', 'stderr'
       else if not @hasWarning
-        @display 'success', "Hexo `#{cmd}` command execute successfully!"
+        @display "Hexo `#{cmd}` command execute successfully!", 'success'
     else
-      @display 'stderr', 'Oops...Seems wrong somewhere!'
+      @display 'Oops...Seems wrong somewhere!', 'stderr'
 
     @hasWarning = @hasError = false
 
@@ -102,12 +102,14 @@ module.exports =
     if @bufferedProcess? and @bufferedProcess.process?
       @bufferedProcess.kill()
 
-  display: (css, line) ->
-    return unless line
-    line = line.replace /(\[\d+m)/g, ''
+  display: (message, className) ->
+    return unless message
+    message = message.replace /(\[\d+m)/g, ''
 
-    @resultsView?.attach()
-    @resultsView?.display css, line
+    setTimeout =>
+      @resultsView?.attach()
+      @resultsView?.display message, className
+    , 0
 
   deactivate: ->
     @postFormView?.detach()
