@@ -1,10 +1,10 @@
 {BufferedProcess} = require 'atom'
-PostCreateView = require './post-create-view'
+PostFormView = require './post-form-view'
 ResultsView = require './results-view'
 
 module.exports =
-  activate: ({@postCreateViewState, @resultsViewState} = {}) ->
-    @postCreateView = new PostCreateView(@postCreateViewState)
+  activate: ({@postFormViewState, @resultsViewState} = {}) ->
+    @postFormView = new PostFormView(@postFormViewState)
     @resultsView = new ResultsView(@resultsViewState)
 
     atom.workspaceView.on 'atom-hexo:generate', =>
@@ -23,7 +23,7 @@ module.exports =
       @resultsView?.detach()
 
     atom.workspaceView.on 'core:cancel core:close', =>
-      @postCreateView?.detach()
+      @postFormView?.detach()
       @resultsView?.detach()
 
   generate: ->
@@ -110,9 +110,9 @@ module.exports =
     @resultsView?.display css, line
 
   deactivate: ->
-    @postCreateView?.detach()
+    @postFormView?.detach()
     @resultsView?.detach()
 
   serialize: ->
-    postCreateViewState: @postCreateView?.serialize() ? @postCreateViewState
+    postFormViewState: @postFormView?.serialize() ? @postFormViewState
     resultsViewState: @resultsView?.serialize() ? @resultsViewState

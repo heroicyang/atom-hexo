@@ -2,27 +2,27 @@ path = require 'path'
 {View, EditorView, BufferedProcess} = require 'atom'
 
 module.exports = 
-class PostCreateView extends View
+class PostFormView extends View
   @bufferedProcess: null
 
   @content: ->
     @div tabIndex: -1, class: 'atom-hexo tool-panel panel-bottom', =>
-      @div class: 'post-create-view-container block', =>
-        @span outlet: 'editorLabel', class: 'editor-label pull-left', 'Post Titile'
-
-        @subview 'postCreateEditor', new EditorView(mini: true)
+      @div class: 'post-form-view padded block', =>
+        @span 'Post Titile', outlet: 'editorLabel', class: 'editor-label'
+        @div class: 'editor-container', =>
+          @subview 'postTitleEditor', new EditorView(mini: true, placeholderText: 'Type your title here...')
 
   initialize: (serializeState) ->
     @handleEvents()
 
     atom.workspaceView.command 'atom-hexo:new-post', =>
-      @showPostCreateEditor()
+      @showPostTitleEditor()
 
     atom.workspaceView.command 'atom-hexo:new-page', =>
-      @showPostCreateEditor 'page'
+      @showPostTitleEditor 'page'
 
     atom.workspaceView.command 'atom-hexo:new-draft', =>
-      @showPostCreateEditor 'draft'
+      @showPostTitleEditor 'draft'
 
   serialize: ->
 
@@ -35,14 +35,14 @@ class PostCreateView extends View
     super()
 
   handleEvents: ->
-    @postCreateEditor.on 'core:confirm', =>
-      @createPost @postCreateEditor.getText()
+    @postTitleEditor.on 'core:confirm', =>
+      @createPost @postTitleEditor.getText()
 
-  showPostCreateEditor: (@layout = 'post') ->
+  showPostTitleEditor: (@layout = 'post') ->
     @attach()
     @setEditorLabel()
-    @postCreateEditor.focus()
-    @postCreateEditor.getEditor().selectAll()
+    @postTitleEditor.focus()
+    @postTitleEditor.getEditor().selectAll()
 
   setEditorLabel: ->
     editorLabel = "#{@layout[0...1].toUpperCase()}#{@layout[1..]} Title: "
@@ -57,8 +57,7 @@ class PostCreateView extends View
       line: 'Please open your Hexo folder as the root project!'
 
     if not hexoPath
-      atom.workspaceView.trigger 'hexo:show-results', projectPathError
-      return
+      return @displayError projectPathError
 
     command = 'hexo'
     args = ['new', @layout, title]
@@ -68,8 +67,7 @@ class PostCreateView extends View
 
     stdout = (output) =>
       if -1 != output.indexOf 'Usage'
-        @detach()
-        atom.workspaceView.trigger 'hexo:show-results', projectPathError
+        @displayError projectPathError
       else
         postFile = output[output.indexOf(atom.project.getPath())..]
         postFile = postFile.replace '\n', ''
@@ -78,10 +76,10 @@ class PostCreateView extends View
           @detach()
 
     stderr = (stderr) =>
-      @detach()
-      data = 
-          css: 'stderr'
-          line: stderr
-        atom.workspaceView.trigger 'hexo:show-results', data
+      @displayError css: 'stderr', line: stderr
 
-    PostCreateView.bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr})
+    PostFormView.bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr})
+
+  displayError: (message) ->
+    @detach()
+    atom.workspaceView.trigger 'hexo:show-results', message
