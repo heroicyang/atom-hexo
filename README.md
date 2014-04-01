@@ -30,7 +30,7 @@ Press `cmd-shift-P` to bring up the list of commands, and type:
 
 ## Todo
 
-- Command: `hexo publish` Publishe a draft
+- Command: `hexo publish` Publish a draft
 - Command: `hexo clean` Clean the cache file and generated files
 - Test
 
