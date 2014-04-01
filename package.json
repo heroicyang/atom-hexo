@@ -1,7 +1,7 @@
 {
   "name": "atom-hexo",
   "main": "./lib/hexo",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Hexo for the Atom Editor.",
   "activationEvents": [
     "atom-hexo:new-post",

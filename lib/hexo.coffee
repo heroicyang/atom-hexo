@@ -87,7 +87,7 @@ module.exports =
       if @hasError
         @display 'Error!!! For details, please see the log!', 'stderr'
       else if not @hasWarning
-        @display "Hexo `#{cmd}` command execute successfully!", 'success'
+        @display "Done, Hexo `#{cmd}` command executed successfully!", 'success'
     else
       @display 'Oops...Seems wrong somewhere!', 'stderr'
 
