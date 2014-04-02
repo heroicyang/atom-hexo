@@ -4,7 +4,7 @@
 
 Provides [Hexo] `new`, `generate`, `deploy` commands in the Atom Editor.
 
-![A screenshot of Atom-Hexo](http://ww2.sinaimg.cn/large/65cc6c38gw1ef0fgok3y0g20vj0km112.jpg)
+![A screenshot of Atom-Hexo](http://ww1.sinaimg.cn/large/65cc6c38gw1ef1lml8dtgg20vj0kmwn5.jpg)
 
 ## Install
 
@@ -16,22 +16,26 @@ You can also install `atom-hexo` by going to the `Packages` section on left hand
 
 ## Usage
 
-Open your favorite terminal, change to the Hexo blog directory, and type `atom` to open the folder as root project. Then enjoy writing!
+Open your favorite terminal, change to your Hexo blog directory, and type `atom` to open the folder as root project. Then use Atom to enjoy writing!
 
 ## Commands
 
 Press `cmd-shift-P` to bring up the list of commands, and type:
 
-- `hexo new post`   Create a new article, use `post` layout
-- `hexo new page`   Create a new article, use `page` layout
-- `hexo new draft`  Create a new article, use `draft` layout
-- `hexo generate`   Generate static files
-- `hexo deploy`     Generate static files and deploy
+```bash
+- hexo new post     # Create a new article, use `post` layout
+- hexo new page     # Create a new article, use `page` layout
+- hexo new draft    # Create a new article, use `draft` layout
+- hexo generate     # Generate static files
+- hexo deploy       # Generate static files and deploy
+```
 
 ## Todo
 
-- Command: `hexo publish` Publish a draft
-- Command: `hexo clean` Clean the cache file and generated files
-- Test
+```bash
+- [] Command: `hexo publish`  #Publish a draft
+- [] Command: `hexo clean`    #Clean the cache file and generated files
+- [] Test
+```
 
 [Hexo]: http://hexo.io/
