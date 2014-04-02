@@ -46,7 +46,7 @@ class PostFormView extends View
 
   setEditorLabel: ->
     editorLabel = "#{@layout[0...1].toUpperCase()}#{@layout[1..]} Title: "
-    @editorLabel.text(editorLabel)
+    @editorLabel.text editorLabel
 
   createPost: (title) ->
     return unless title

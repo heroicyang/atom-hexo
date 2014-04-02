@@ -29,8 +29,7 @@ module.exports =
       @resultsView?.detach()
 
   executeCommand: (cmd) ->
-    return unless cmd
-    return if @processing()
+    return if not cmd or @processing()
 
     @resultsView?.clear()
     @display message: "Running Hexo \"#{cmd}\" command...", className: 'light'
