@@ -2,21 +2,23 @@
 PostFormView = require './post-form-view'
 ResultsView = require './results-view'
 
+projectPathError = 
+  message: 'Warning: Please open your Hexo folder as the root project.'
+  className: 'warning'
+
 module.exports =
   activate: ({@postFormViewState, @resultsViewState} = {}) ->
     @postFormView = new PostFormView(@postFormViewState)
     @resultsView = new ResultsView(@resultsViewState)
 
     atom.workspaceView.on 'atom-hexo:generate', =>
-      @resultsView?.clear()
-      @generate() unless @processing()
+      @executeCommand 'generate'
 
     atom.workspaceView.on 'atom-hexo:deploy', =>
-      @resultsView?.clear()
-      @deploy() unless @processing()
+      @executeCommand 'deploy'
 
-    atom.workspaceView.on 'hexo:show-results', (event, data) =>
-      @display data.message, data.className
+    atom.workspaceView.on 'hexo:show-results', (event, result) =>
+      @display result
 
     atom.workspaceView.on 'hexo:hide-results', =>
       @resultsView?.clear()
@@ -26,9 +28,24 @@ module.exports =
       @postFormView?.detach()
       @resultsView?.detach()
 
-  generate: ->
+  executeCommand: (cmd) ->
+    return unless cmd
+    return if @processing()
+
+    @resultsView?.clear()
+    @display message: "Running Hexo \"#{cmd}\" command...", className: 'light'
+
+    hexoPath = atom.project.getPath()
+    if not hexoPath
+      @hasWarning = true
+      return @display projectPathError
+
+    argsHash =
+      generate: ['generate']
+      deploy: ['generate', '--deploy']
+
     command = 'hexo'
-    args = ['generate']
+    args = argsHash[cmd]
     options =
       cwd: atom.project.getPath()
       env: process.env
@@ -40,56 +57,36 @@ module.exports =
       @displayError stderr
     
     exit = (code) =>
-      @processExit code, 'generate'
-
-    @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
-
-  deploy: ->
-    command = 'hexo'
-    args = ['generate', '--deploy']
-    options =
-      cwd: atom.project.getPath()
-      env: process.env
-
-    stdout = (output) =>
-      @displayOutput(output)
-
-    stderr = (stderr) =>
-      @displayError stderr
-    
-    exit = (code) =>
-      @processExit code, 'deploy'
+      @processExit code, cmd
 
     @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
 
   displayOutput: (output) ->
     if -1 != output.indexOf 'Usage'
       @hasWarning = true
-      className = 'warning'
-      message = 'Please open your Hexo folder as the root project!'
-    else
-      className = 'stdout'
-      message = output
+      return @display projectPathError
 
-    @display message, className
+    @display message: output, className: 'stdout'
 
   displayError: (stderr) ->
     @hasError = true
     # fix output when deploy to github
     if /(:|\/)([^\/]+)\/([^\/]+)\.git\/?/.test(stderr) or /([\d\w]+)..(\d\w+)/.test(stderr)
       @hasError = false
-      @display stderr, 'stdout'
+      @display message: stderr, className: 'stdout'
     else
-      @display stderr, 'stderr'
+      @display message: stderr, className: 'stderr'
 
   processExit: (code, cmd) ->
     if code is 0
       if @hasError
-        @display 'Error!!! For details, please see the log!', 'stderr'
-      else if not @hasWarning
-        @display "Done, Hexo `#{cmd}` command executed successfully!", 'success'
+        @display message: 'Error: For details, please see the log.', className: 'stderr'
+      else if @hasWarning
+        @display message: 'Aborted due to warnings.', className: 'stderr'
+      else
+        @display message: "Done, Hexo \"#{cmd}\" command executed successfully.", className: 'success'
     else
-      @display 'Oops...Seems wrong somewhere!', 'stderr'
+      @display message: 'Oops...Seems wrong somewhere!', className: 'stderr'
 
     @hasWarning = @hasError = false
 
@@ -102,13 +99,13 @@ module.exports =
     if @bufferedProcess? and @bufferedProcess.process?
       @bufferedProcess.kill()
 
-  display: (message, className) ->
+  display: ({message, className} = {}) ->
     return unless message
     message = message.replace /(\[\d+m)/g, ''
 
     setTimeout =>
       @resultsView?.attach()
-      @resultsView?.display message, className
+      @resultsView?.display {message, className}
     , 0
 
   deactivate: ->

@@ -53,7 +53,7 @@ class PostFormView extends View
 
     hexoPath = atom.project.getPath()
     projectPathError = 
-      message: 'Please open your Hexo folder as the root project!'
+      message: 'Warning: Please open your Hexo folder as the root project.'
       className: 'warning'
 
     if not hexoPath
@@ -80,6 +80,6 @@ class PostFormView extends View
 
     PostFormView.bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr})
 
-  displayError: (message) ->
+  displayError: (result) ->
     @detach()
-    atom.workspaceView.trigger 'hexo:show-results', message
+    atom.workspaceView.trigger 'hexo:show-results', result
