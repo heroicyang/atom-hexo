@@ -18,6 +18,7 @@ class ResultsView extends View
   clear: ->
     @contentPanel.empty() if @contentPanel.children()
 
-  display: (message, className='output') ->
+  display: ({message, className} = {className: 'output'}) ->
+    return unless message
     @contentPanel.append "<pre class='line #{className}'>#{message}</pre>"
     @contentPanel.scrollTop @contentPanel[0].scrollHeight
