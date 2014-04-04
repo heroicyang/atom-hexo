@@ -33,8 +33,8 @@ Press `cmd-shift-P` to bring up the list of commands, and type:
 ## Todo
 
 ```bash
-- [] Command: `hexo publish`  #Publish a draft
-- [] Command: `hexo clean`    #Clean the cache file and generated files
+- [] Command: `hexo publish`  # Publish a draft
+- [] Command: `hexo clean`    # Clean the cache file and generated files
 - [] Test
 ```
 
