@@ -1,5 +1,7 @@
-## 0.2.6 / 2014-04-03
+## 0.2.7 / 2014-04-11
 
+- 0.2.7:
+  - add `hexo clean` command
 - 0.2.6:
   - refactor results-view's display method
   - refactor command execute logic
