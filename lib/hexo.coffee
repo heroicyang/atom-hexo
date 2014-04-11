@@ -17,6 +17,9 @@ module.exports =
     atom.workspaceView.on 'atom-hexo:deploy', =>
       @executeCommand 'deploy'
 
+    atom.workspaceView.on 'atom-hexo:clean', =>
+      @executeCommand 'clean'
+
     atom.workspaceView.on 'hexo:show-results', (event, result) =>
       @display result
 
@@ -42,6 +45,7 @@ module.exports =
     argsHash =
       generate: ['generate']
       deploy: ['generate', '--deploy']
+      clean: ['clean']
 
     command = 'hexo'
     args = argsHash[cmd]
