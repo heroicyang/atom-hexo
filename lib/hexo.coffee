@@ -1,6 +1,9 @@
+path = require 'path'
 {BufferedProcess} = require 'atom'
+fs = require 'fs-plus'
 PostFormView = require './post-form-view'
 ResultsView = require './results-view'
+DraftPublishView = require './draft-publish-view'
 
 projectPathError = 
   message: 'Warning: Please open your Hexo folder as the root project.'
@@ -20,8 +23,27 @@ module.exports =
     atom.workspaceView.on 'atom-hexo:clean', =>
       @executeCommand 'clean'
 
-    atom.workspaceView.on 'hexo:show-results', (event, result) =>
-      @display result
+    atom.workspaceView.on 'atom-hexo:publish', =>
+      hexoPath = atom.project.getPath()
+      unless hexoPath
+        return @display projectPathError
+
+      fs.list path.join(hexoPath, '/source/_drafts'), (err, paths) =>
+        if err
+          return @display message: err.message, className: 'stderr'
+
+        paths = fs.filterExtensions paths, ['md', 'markdown']
+        unless paths.length
+          return @display message: 'There is no draft.', className: 'stdout'
+
+        @createDraftPublishView().setItems paths
+        @draftPublishView.toggle()
+
+    atom.workspaceView.on 'hexo:exec', (event, {cmd, extraArgs} = {}) =>
+      @executeCommand cmd, extraArgs
+
+    atom.workspaceView.on 'hexo:show-results', (event, {message, className} = {}) =>
+      @display {message, className}
 
     atom.workspaceView.on 'hexo:hide-results', =>
       @resultsView?.clear()
@@ -31,7 +53,7 @@ module.exports =
       @postFormView?.detach()
       @resultsView?.detach()
 
-  executeCommand: (cmd) ->
+  executeCommand: (cmd, extraArgs = []) ->
     return if not cmd or @processing()
 
     @resultsView?.clear()
@@ -46,9 +68,10 @@ module.exports =
       generate: ['generate']
       deploy: ['generate', '--deploy']
       clean: ['clean']
+      publish: ['publish']
 
     command = 'hexo'
-    args = argsHash[cmd]
+    args = argsHash[cmd].concat extraArgs
     options =
       cwd: atom.project.getPath()
       env: process.env
@@ -110,6 +133,11 @@ module.exports =
       @resultsView?.attach()
       @resultsView?.display {message, className}
     , 0
+
+  createDraftPublishView: ->
+    unless @draftPublishView?
+      @draftPublishView = new DraftPublishView()
+    @draftPublishView
 
   deactivate: ->
     @postFormView?.detach()

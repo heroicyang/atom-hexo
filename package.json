@@ -9,7 +9,8 @@
     "atom-hexo:new-draft",
     "atom-hexo:generate",
     "atom-hexo:deploy",
-    "atom-hexo:clean"
+    "atom-hexo:clean",
+    "atom-hexo:publish"
   ],
   "repository": "https://github.com/heroicyang/atom-hexo",
   "author": {
@@ -20,5 +21,8 @@
   "license": "MIT",
   "engines": {
     "atom": ">0.50.0"
+  },
+  "dependencies": {
+    "fs-plus": "^2.2.1"
   }
 }
