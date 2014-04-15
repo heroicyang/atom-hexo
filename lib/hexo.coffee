@@ -28,16 +28,12 @@ module.exports =
       unless hexoPath
         return @display projectPathError
 
-      fs.list path.join(hexoPath, '/source/_drafts'), (err, paths) =>
-        if err
-          return @display message: err.message, className: 'stderr'
+      paths = fs.listSync path.join(hexoPath, '/source/_drafts'), ['md', 'markdown']
+      unless paths and paths.length
+        return @display message: 'There is no draft.', className: 'warning'
 
-        paths = fs.filterExtensions paths, ['md', 'markdown']
-        unless paths.length
-          return @display message: 'There is no draft.', className: 'stdout'
-
-        @createDraftPublishView().setItems paths
-        @draftPublishView.toggle()
+      @createDraftPublishView().setItems paths
+      @draftPublishView.toggle()
 
     atom.workspaceView.on 'hexo:exec', (event, {cmd, extraArgs} = {}) =>
       @executeCommand cmd, extraArgs
