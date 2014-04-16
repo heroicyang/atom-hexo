@@ -2,7 +2,7 @@
 
 > [Hexo] for the Atom Editor.
 
-Provides [Hexo] `new`, `generate`, `deploy`, `clean` commands in the Atom Editor.
+Provides [Hexo] `new`, `generate`, `deploy`, `publish`, `clean` commands in the Atom Editor.
 
 ![A screenshot of Atom-Hexo](http://ww1.sinaimg.cn/large/65cc6c38gw1ef1lml8dtgg20vj0kmwn5.jpg)
 
@@ -28,13 +28,13 @@ Press `cmd-shift-P` to bring up the list of commands, and type:
 - hexo new draft    # Create a new article, use `draft` layout
 - hexo generate     # Generate static files
 - hexo deploy       # Generate static files and deploy
+- hexo publish      # Publish a draft
 - hexo clean        # Clean the cache file and generated files
 ```
 
 ## Todo
 
 ```bash
-- [] Command: `hexo publish`  # Publish a draft
 - [] Test
 ```
 

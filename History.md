@@ -1,5 +1,8 @@
-## 0.2.7 / 2014-04-11
+## 0.3.0 / 2014-04-16
 
+- 0.3.0:
+  - refactor totally
+  - add `hexo publish` command
 - 0.2.7:
   - add `hexo clean` command
 - 0.2.6:
