@@ -54,15 +54,10 @@ module.exports =
         @disableLog = false
         @log message: "Running Hexo \"#{cmd}\" command...", className: 'light'
 
-      if cmd is 'new' or 'publish'
-        @watch()
-
-    atom.workspaceView.on 'hexo:after-command', (event, cmd) =>
-      if cmd is 'new' or 'publish'
-        @closeWatchers()
-
       if cmd is 'new'
-        @postCreateView.detach()
+        @watch()
+      else if cmd is 'publish'
+        @watch ['/source/_posts']
 
     atom.workspaceView.on 'hexo:command', (event, {cmd, args}) =>
       @execCommand cmd, args
@@ -83,7 +78,12 @@ module.exports =
       else
         @log message: stderr, className: 'stderr'
 
+      @closeWatchers()
+
     atom.workspaceView.on 'hexo:command-exit', (event, {cmd, exitCode}) =>
+      if cmd is 'new'
+        @postCreateView.detach()
+
       if exitCode is 0
         if @hasError
           @log message: 'Error: For details, please see the log.', className: 'stderr'
@@ -119,22 +119,25 @@ module.exports =
 
     @command.exec cmd, args
 
-  watch: ->
+  watch: (paths) ->
+    self = @
     hexoPath = @hexoPath
-    paths = ['/source', '/source/_posts', '/source/_drafts']
+    paths ?= ['/source', '/source/_posts', '/source/_drafts']
     @watchers = paths.map (postPath) ->
       watchPath = path.join(hexoPath, postPath)
       return unless fs.existsSync watchPath
 
-      fs.watch watchPath, (event, filename) ->
-        return unless event is 'rename'
+      do (watchPath) ->
+        fs.watch watchPath, (event, filename) ->
+          return unless event is 'rename'
 
-        filepath = path.join watchPath, filename
-        # create post with page layout
-        if fs.isDirectorySync filepath
-          filepath = path.join filepath, '/index.md'
+          filepath = path.join watchPath, filename
+          # create post with page layout
+          if fs.isDirectorySync filepath
+            filepath = path.join filepath, '/index.md'
 
-        atom.workspaceView.open(filepath)
+          atom.workspaceView.open(filepath).done ->
+            self.closeWatchers()
 
   closeWatchers: ->
     while @watchers.length
