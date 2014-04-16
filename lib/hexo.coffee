@@ -1,144 +1,149 @@
 path = require 'path'
-{BufferedProcess} = require 'atom'
 fs = require 'fs-plus'
-PostFormView = require './post-form-view'
-ResultsView = require './results-view'
+Command = require './command'
+ConsoleView = require './console-view'
+PostCreateView = require './post-create-view'
 DraftPublishView = require './draft-publish-view'
 
-projectPathError = 
-  message: 'Warning: Please open your Hexo folder as the root project.'
-  className: 'warning'
-
 module.exports =
-  activate: ({@postFormViewState, @resultsViewState} = {}) ->
-    @postFormView = new PostFormView(@postFormViewState)
-    @resultsView = new ResultsView(@resultsViewState)
+  activate: ->
+    @hexoPath = atom.project.getPath()
+    @consoleView = new ConsoleView()
+    @command = new Command()
 
-    atom.workspaceView.on 'atom-hexo:generate', =>
-      @executeCommand 'generate'
+    @handleEvents()
+    @handleCommandEvents()
 
-    atom.workspaceView.on 'atom-hexo:deploy', =>
-      @executeCommand 'deploy'
+  handleEvents: ->
+    atom.workspaceView.command 'atom-hexo:new-post', =>
+      @createPostCreateView()
 
-    atom.workspaceView.on 'atom-hexo:clean', =>
-      @executeCommand 'clean'
+    atom.workspaceView.command 'atom-hexo:new-page', =>
+      @createPostCreateView('page')
 
-    atom.workspaceView.on 'atom-hexo:publish', =>
-      hexoPath = atom.project.getPath()
-      unless hexoPath
-        return @display projectPathError
+    atom.workspaceView.command 'atom-hexo:new-draft', =>
+      @createPostCreateView('draft')
 
-      paths = fs.listSync path.join(hexoPath, '/source/_drafts'), ['md', 'markdown']
-      unless paths and paths.length
-        return @display message: 'There is no draft.', className: 'warning'
+    atom.workspaceView.command 'atom-hexo:generate', =>
+      @execCommand 'generate'
 
-      @createDraftPublishView().setItems paths
-      @draftPublishView.toggle()
+    atom.workspaceView.command 'atom-hexo:deploy', =>
+      @execCommand 'deploy'
 
-    atom.workspaceView.on 'hexo:exec', (event, {cmd, extraArgs} = {}) =>
-      @executeCommand cmd, extraArgs
+    atom.workspaceView.command 'atom-hexo:clean', =>
+      @execCommand 'clean'
 
-    atom.workspaceView.on 'hexo:show-results', (event, {message, className} = {}) =>
-      @display {message, className}
-
-    atom.workspaceView.on 'hexo:hide-results', =>
-      @resultsView?.clear()
-      @resultsView?.detach()
+    atom.workspaceView.command 'atom-hexo:publish', =>
+      @draftPublishView?.detach()
+      @draftPublishView = new DraftPublishView()
 
     atom.workspaceView.on 'core:cancel core:close', =>
-      @postFormView?.detach()
-      @resultsView?.detach()
+      return if @command.processing()
 
-  executeCommand: (cmd, extraArgs = []) ->
-    return if not cmd or @processing()
+      @postCreateView?.detach()
+      @draftPublishView?.detach()
+      @consoleView?.detach()
 
-    @resultsView?.clear()
-    @display message: "Running Hexo \"#{cmd}\" command...", className: 'light'
+  handleCommandEvents: ->
+    atom.workspaceView.on 'hexo:before-command', (event, cmd) =>
+      @consoleView.clear()
 
-    hexoPath = atom.project.getPath()
-    if not hexoPath
-      @hasWarning = true
-      return @display projectPathError
-
-    argsHash =
-      generate: ['generate']
-      deploy: ['generate', '--deploy']
-      clean: ['clean']
-      publish: ['publish']
-
-    command = 'hexo'
-    args = argsHash[cmd].concat extraArgs
-    options =
-      cwd: atom.project.getPath()
-      env: process.env
-
-    stdout = (output) =>
-      @displayOutput(output)
-
-    stderr = (stderr) =>
-      @displayError stderr
-    
-    exit = (code) =>
-      @processExit code, cmd
-
-    @bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})
-
-  displayOutput: (output) ->
-    if -1 != output.indexOf 'Usage'
-      @hasWarning = true
-      return @display projectPathError
-
-    @display message: output, className: 'stdout'
-
-  displayError: (stderr) ->
-    @hasError = true
-    # fix output when deploy to github
-    if /(:|\/)([^\/]+)\/([^\/]+)\.git\/?/.test(stderr) or /([\d\w]+)..(\d\w+)/.test(stderr)
-      @hasError = false
-      @display message: stderr, className: 'stdout'
-    else
-      @display message: stderr, className: 'stderr'
-
-  processExit: (code, cmd) ->
-    if code is 0
-      if @hasError
-        @display message: 'Error: For details, please see the log.', className: 'stderr'
-      else if @hasWarning
-        @display message: 'Aborted due to warnings.', className: 'stderr'
+      if cmd is 'new'
+        @disableLog = true
       else
-        @display message: "Done, Hexo \"#{cmd}\" command executed successfully.", className: 'success'
-    else
-      @display message: 'Oops...Seems wrong somewhere!', className: 'stderr'
+        @disableLog = false
+        @log message: "Running Hexo \"#{cmd}\" command...", className: 'light'
 
-    @hasWarning = @hasError = false
+      if cmd is 'new' or 'publish'
+        @watch()
 
-    @stop()
+    atom.workspaceView.on 'hexo:after-command', (event, cmd) =>
+      if cmd is 'new' or 'publish'
+        @closeWatchers()
 
-  processing: ->
-    @bufferedProcess? and @bufferedProcess.process?
+      if cmd is 'new'
+        @postCreateView.detach()
 
-  stop: ->
-    if @bufferedProcess? and @bufferedProcess.process?
-      @bufferedProcess.kill()
+    atom.workspaceView.on 'hexo:command', (event, {cmd, args}) =>
+      @execCommand cmd, args
 
-  display: ({message, className} = {}) ->
-    return unless message
-    message = message.replace /(\[\d+m)/g, ''
+    atom.workspaceView.on 'hexo:command-stdout', (event, stdout) =>
+      if -1 isnt stdout.indexOf 'Usage'
+        @hasWarning = true
+        return @showProjectPathError()
 
-    setTimeout =>
-      @resultsView?.attach()
-      @resultsView?.display {message, className}
-    , 0
+      @log message: stdout, className: 'stdout'
 
-  createDraftPublishView: ->
-    unless @draftPublishView?
-      @draftPublishView = new DraftPublishView()
-    @draftPublishView
+    atom.workspaceView.on 'hexo:command-stderr', (event, stderr) =>
+      @hasError = true
+      # fix output when deploy to github
+      if /(:|\/)([^\/]+)\/([^\/]+)\.git\/?/.test(stderr) or /([\d\w]+)\.\.([\d\w+])/.test(stderr)
+        @hasError = false
+        @log message: stderr, className: 'stdout'
+      else
+        @log message: stderr, className: 'stderr'
+
+    atom.workspaceView.on 'hexo:command-exit', (event, {cmd, exitCode}) =>
+      if exitCode is 0
+        if @hasError
+          @log message: 'Error: For details, please see the log.', className: 'stderr'
+        else if @hasWarning
+          @log message: 'Aborted due to warnings.', className: 'stderr'
+        else
+          @log message: "Done, Hexo \"#{cmd}\" command executed successfully.", className: 'success'
+      else
+        @log message: 'Oops...Seems wrong somewhere!', className: 'stderr'
+
+      @hasWarning = @hasError = false
+
+  showProjectPathError: ->
+    projectPathError = 
+      message: 'Warning: Please open your Hexo folder as the root project.'
+      className: 'warning'
+
+    @consoleView.display projectPathError
+
+  log: ({message, className}) ->
+    return if @disableLog
+    @consoleView.display {message, className}
+
+  createPostCreateView: (layout = 'post') ->
+    @postCreateView?.detach()
+    @consoleView?.detach()
+    @postCreateView = new PostCreateView({layout})
+
+  execCommand: (cmd, args) ->
+    unless @hexoPath
+      @consoleView.clear()
+      return @showProjectPathError()
+
+    @command.exec cmd, args
+
+  watch: ->
+    hexoPath = @hexoPath
+    paths = ['/source', '/source/_posts', '/source/_drafts']
+    @watchers = paths.map (postPath) ->
+      watchPath = path.join(hexoPath, postPath)
+      return unless fs.existsSync watchPath
+
+      fs.watch watchPath, (event, filename) ->
+        return unless event is 'rename'
+
+        filepath = path.join watchPath, filename
+        # create post with page layout
+        if fs.isDirectorySync filepath
+          filepath = path.join filepath, '/index.md'
+
+        atom.workspaceView.open(filepath)
+
+  closeWatchers: ->
+    while @watchers.length
+      @watchers.shift()?.close()
 
   deactivate: ->
-    @postFormView?.detach()
-    @resultsView?.detach()
-
-  serialize: ->
-    postFormViewState: @postFormView?.serialize() ? @postFormViewState
-    resultsViewState: @resultsView?.serialize() ? @resultsViewState
+    @consoleView?.detach()
+    @command = null
+    @postCreateView?.detach()
+    @draftPublishView?.detach()
+    @hasWarning = @hasError = false
+    @disableLog = false
