@@ -4,7 +4,7 @@
 
 Provides [Hexo] `new`, `generate`, `deploy`, `publish`, `clean` commands in the Atom Editor.
 
-![A screenshot of Atom-Hexo](http://ww1.sinaimg.cn/large/65cc6c38gw1ef1lml8dtgg20vj0kmwn5.jpg)
+![A screenshot of Atom-Hexo](http://ww3.sinaimg.cn/large/65cc6c38gw1efhuoov2igg20vj0kmnbs.gif)
 
 ## Install
 

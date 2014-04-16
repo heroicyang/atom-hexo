@@ -1,5 +1,7 @@
-## 0.3.0 / 2014-04-16
+## 0.3.1 / 2014-04-16
 
+- 0.3.1:
+  - fix bug of watch post file
 - 0.3.0:
   - refactor totally
   - add `hexo publish` command
