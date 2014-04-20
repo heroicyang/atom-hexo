@@ -26,7 +26,7 @@ class Command
     stderr = (stderr) ->
       atom.workspaceView.trigger 'hexo:command-stderr', stderr
     exit = (exitCode) =>
-      atom.workspaceView.trigger 'hexo:command-exit', {cmd, exitCode}
+      atom.workspaceView.trigger 'hexo:command-exit', exitCode
       @terminate()
 
     @constructor.bufferedProcess = new BufferedProcess({command, args, options, stdout, stderr, exit})

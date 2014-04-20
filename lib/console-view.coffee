@@ -9,10 +9,29 @@ class ConsoleView extends View
   attach: ->
     atom.workspaceView.prependToBottom(this) unless @hasParent()
 
+  highlight: (message) ->
+    className = 'highlight'
+    @display {message, className}
+
+  success: (message) ->
+    className = 'success'
+    @display {message, className}
+
+  info: (message) ->
+    className = 'info'
+    @display {message, className}
+
+  warn: (message) ->
+    className = 'warning'
+    @display {message, className}
+
+  error: (message) ->
+    className = 'error'
+    @display {message, className}
+
   display: ({message, className}) ->
     return unless message
 
-    className ?= 'output'
     @attach()
 
     # strip ANSI escape codes

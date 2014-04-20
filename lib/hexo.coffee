@@ -5,6 +5,8 @@ ConsoleView = require './console-view'
 PostCreateView = require './post-create-view'
 DraftPublishView = require './draft-publish-view'
 
+pathWarning = 'Warning: Please open your Hexo folder as the root project.'
+
 module.exports =
   activate: ->
     @hexoPath = atom.project.getPath()
@@ -46,18 +48,13 @@ module.exports =
 
   handleCommandEvents: ->
     atom.workspaceView.on 'hexo:before-command', (event, cmd) =>
+      @currentCommand = cmd
       @consoleView.clear()
 
-      if cmd is 'new'
-        @disableLog = true
-      else
-        @disableLog = false
-        @log message: "Running Hexo \"#{cmd}\" command...", className: 'light'
-
-      if cmd is 'new'
-        @watch()
-      else if cmd is 'publish'
-        @watch ['/source/_posts']
+      if cmd isnt 'new'
+        @consoleView.highlight "Running Hexo \"#{cmd}\" command..."
+      
+      @watch()
 
     atom.workspaceView.on 'hexo:command', (event, {cmd, args}) =>
       @execCommand cmd, args
@@ -65,47 +62,37 @@ module.exports =
     atom.workspaceView.on 'hexo:command-stdout', (event, stdout) =>
       if -1 isnt stdout.indexOf 'Usage'
         @hasWarning = true
-        return @showProjectPathError()
-
-      @log message: stdout, className: 'stdout'
+        @consoleView.warn pathWarning
+      else if @currentCommand isnt 'new'
+        @consoleView.info stdout
 
     atom.workspaceView.on 'hexo:command-stderr', (event, stderr) =>
       @hasError = true
       # fix output when deploy to github
       if /(:|\/)([^\/]+)\/([^\/]+)\.git\/?/.test(stderr) or /([\d\w]+)\.\.([\d\w+])/.test(stderr)
         @hasError = false
-        @log message: stderr, className: 'stdout'
+        @consoleView.info stderr
       else
-        @log message: stderr, className: 'stderr'
+        @consoleView.error stderr
 
-      @closeWatchers()
+      @removeWatchers()
 
-    atom.workspaceView.on 'hexo:command-exit', (event, {cmd, exitCode}) =>
-      if cmd is 'new'
+    atom.workspaceView.on 'hexo:command-exit', (event, exitCode) =>
+      if @currentCommand is 'new'
         @postCreateView.detach()
 
       if exitCode is 0
         if @hasError
-          @log message: 'Error: For details, please see the log.', className: 'stderr'
+          @consoleView.error 'Error: For details, please see the log.'
         else if @hasWarning
-          @log message: 'Aborted due to warnings.', className: 'stderr'
-        else
-          @log message: "Done, Hexo \"#{cmd}\" command executed successfully.", className: 'success'
+          @consoleView.error 'Aborted due to warnings.'
+        else if @currentCommand isnt 'new'
+          @consoleView.success "Done, Hexo \"#{@currentCommand}\" command executed successfully."
       else
-        @log message: 'Oops...Seems wrong somewhere!', className: 'stderr'
+        @consoleView.error 'Oops...Seems wrong somewhere!'
 
       @hasWarning = @hasError = false
-
-  showProjectPathError: ->
-    projectPathError = 
-      message: 'Warning: Please open your Hexo folder as the root project.'
-      className: 'warning'
-
-    @consoleView.display projectPathError
-
-  log: ({message, className}) ->
-    return if @disableLog
-    @consoleView.display {message, className}
+      @currentCommand = null
 
   createPostCreateView: (layout = 'post') ->
     @postCreateView?.detach()
@@ -113,23 +100,29 @@ module.exports =
     @postCreateView = new PostCreateView({layout})
 
   execCommand: (cmd, args) ->
-    unless @hexoPath
+    if @hexoPath
+      @command.exec cmd, args
+    else
       @consoleView.clear()
-      return @showProjectPathError()
+      @consoleView.warn pathWarning
 
-    @command.exec cmd, args
+  watch: () ->
+    if @currentCommand is 'new'
+      paths = ['/source', '/source/_posts', '/source/_drafts']
+    else if @currentCommand is 'publish'
+      paths = ['/source/_posts']
+    return unless paths
 
-  watch: (paths) ->
-    self = @
+    self = this
     hexoPath = @hexoPath
-    paths ?= ['/source', '/source/_posts', '/source/_drafts']
+
     @watchers = paths.map (postPath) ->
       watchPath = path.join(hexoPath, postPath)
       return unless fs.existsSync watchPath
 
       do (watchPath) ->
         fs.watch watchPath, (event, filename) ->
-          return unless event is 'rename'
+          return unless event is 'rename' and filename.nlink isnt 0
 
           filepath = path.join watchPath, filename
           # create post with page layout
@@ -137,9 +130,9 @@ module.exports =
             filepath = path.join filepath, '/index.md'
 
           atom.workspaceView.open(filepath).done ->
-            self.closeWatchers()
+            self.removeWatchers()
 
-  closeWatchers: ->
+  removeWatchers: ->
     while @watchers.length
       @watchers.shift()?.close()
 
@@ -149,4 +142,4 @@ module.exports =
     @postCreateView?.detach()
     @draftPublishView?.detach()
     @hasWarning = @hasError = false
-    @disableLog = false
+    @currentCommand = null
