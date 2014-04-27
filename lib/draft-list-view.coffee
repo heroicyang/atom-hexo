@@ -3,10 +3,10 @@ fs = require 'fs-plus'
 {$$, SelectListView} = require 'atom'
 
 module.exports = 
-class DraftPublishView extends SelectListView
+class DraftListView extends SelectListView
   initialize: ->
     super
-    @addClass 'hexo-publish-draft overlay from-top'
+    @addClass 'hexo-draft-list overlay from-top'
     @setMaxItems 10
     @setLoading 'Loading drafts...'
     @attach()
@@ -33,8 +33,8 @@ class DraftPublishView extends SelectListView
     return unless draftFile
 
     @cancel()
-    draftFile = path.basename draftFile, path.extname(draftFile)
-    atom.workspaceView.trigger 'hexo:command', cmd: 'publish', args: draftFile
+    draftFile = path.join 'source/_drafts/', draftFile
+    atom.workspaceView.open(draftFile)
 
   setItems: (draftFilePaths) ->
     draftFilePaths = draftFilePaths.map (filepath) ->

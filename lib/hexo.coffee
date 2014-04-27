@@ -3,7 +3,7 @@ fs = require 'fs-plus'
 Command = require './command'
 ConsoleView = require './console-view'
 PostCreateView = require './post-create-view'
-DraftPublishView = require './draft-publish-view'
+DraftListView = require './draft-list-view'
 
 pathWarning = 'Warning: Please open your Hexo folder as the root project.'
 
@@ -35,15 +35,25 @@ module.exports =
     atom.workspaceView.command 'atom-hexo:clean', =>
       @execCommand 'clean'
 
+    atom.workspaceView.command 'atom-hexo:list-drafts', =>
+      if @hexoPath
+        @draftListView?.detach()
+        @draftListView = new DraftListView()
+      else
+        @consoleView.clear()
+        @consoleView.warn pathWarning
+
     atom.workspaceView.command 'atom-hexo:publish', =>
-      @draftPublishView?.detach()
-      @draftPublishView = new DraftPublishView()
+      draftFile = atom.workspace.getActiveEditor().getPath()
+      if draftFile
+        draftFile = path.basename draftFile, path.extname(draftFile)
+        @execCommand 'publish', [draftFile]
 
     atom.workspaceView.on 'core:cancel core:close', =>
       return if @command.processing()
 
       @postCreateView?.detach()
-      @draftPublishView?.detach()
+      @draftListView?.detach()
       @consoleView?.detach()
 
   handleCommandEvents: ->
@@ -140,6 +150,6 @@ module.exports =
     @consoleView?.detach()
     @command = null
     @postCreateView?.detach()
-    @draftPublishView?.detach()
+    @draftListView?.detach()
     @hasWarning = @hasError = false
     @currentCommand = null

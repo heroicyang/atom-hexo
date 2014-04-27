@@ -7,10 +7,11 @@
     "atom-hexo:new-post",
     "atom-hexo:new-page",
     "atom-hexo:new-draft",
+    "atom-hexo:list-drafts",
+    "atom-hexo:publish",
     "atom-hexo:generate",
     "atom-hexo:deploy",
-    "atom-hexo:clean",
-    "atom-hexo:publish"
+    "atom-hexo:clean"
   ],
   "repository": "https://github.com/heroicyang/atom-hexo",
   "author": {
