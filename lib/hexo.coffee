@@ -5,14 +5,10 @@ ConsoleView = require './console-view'
 PostCreateView = require './post-create-view'
 DraftListView = require './draft-list-view'
 
-pathWarning = 'Warning: Please open your Hexo folder as the root project.'
-
 module.exports =
   activate: ->
-    @hexoPath = atom.project.getPath()
     @consoleView = new ConsoleView()
     @command = new Command()
-
     @handleEvents()
     @handleCommandEvents()
 
@@ -36,18 +32,20 @@ module.exports =
       @execCommand 'clean'
 
     atom.workspaceView.command 'atom-hexo:list-drafts', =>
-      if @hexoPath
+      if @checkHexoPath()
         @draftListView?.detach()
         @draftListView = new DraftListView()
-      else
-        @consoleView.clear()
-        @consoleView.warn pathWarning
 
     atom.workspaceView.command 'atom-hexo:publish', =>
-      draftFile = atom.workspace.getActiveEditor().getPath()
-      if draftFile
-        draftFile = path.basename draftFile, path.extname(draftFile)
-        @execCommand 'publish', [draftFile]
+      if @checkHexoPath()
+        draftFilePath = atom.workspace.getActiveEditor().getPath()
+        if draftFilePath
+          draftFileName = path.basename draftFilePath, path.extname(draftFilePath)
+
+          if fs.existsSync path.join 'source/_drafts/', path.basename(draftFilePath)
+            @execCommand 'publish', [draftFileName]
+          else
+            @consoleView.warn 'Warning: The article has been published.'
 
     atom.workspaceView.on 'core:cancel core:close', =>
       return if @command.processing()
@@ -57,6 +55,9 @@ module.exports =
       @consoleView?.detach()
 
   handleCommandEvents: ->
+    atom.workspaceView.on 'hexo:exec-command', (event, {cmd, args}) =>
+      @execCommand cmd, args
+
     atom.workspaceView.on 'hexo:before-command', (event, cmd) =>
       @currentCommand = cmd
       @consoleView.clear()
@@ -66,14 +67,8 @@ module.exports =
       
       @watch()
 
-    atom.workspaceView.on 'hexo:command', (event, {cmd, args}) =>
-      @execCommand cmd, args
-
     atom.workspaceView.on 'hexo:command-stdout', (event, stdout) =>
-      if -1 isnt stdout.indexOf 'Usage'
-        @hasWarning = true
-        @consoleView.warn pathWarning
-      else if @currentCommand isnt 'new'
+      if @currentCommand isnt 'new'
         @consoleView.info stdout
 
     atom.workspaceView.on 'hexo:command-stderr', (event, stderr) =>
@@ -88,9 +83,6 @@ module.exports =
       @removeWatchers()
 
     atom.workspaceView.on 'hexo:command-exit', (event, exitCode) =>
-      if @currentCommand is 'new'
-        @postCreateView.detach()
-
       if exitCode is 0
         if @hasError
           @consoleView.error 'Error: For details, please see the log.'
@@ -105,16 +97,23 @@ module.exports =
       @currentCommand = null
 
   createPostCreateView: (layout = 'post') ->
-    @postCreateView?.detach()
-    @consoleView?.detach()
-    @postCreateView = new PostCreateView({layout})
+    if @checkHexoPath()
+      @postCreateView?.detach()
+      @consoleView?.detach()
+      @postCreateView = new PostCreateView({layout})
 
   execCommand: (cmd, args) ->
-    if @hexoPath
+    if @checkHexoPath()
       @command.exec cmd, args
-    else
-      @consoleView.clear()
-      @consoleView.warn pathWarning
+
+  checkHexoPath: ->
+    projectPath = atom.project.getPath() or ''
+    hexoConfigPath = path.join projectPath, '_config.yml'
+    return true if fs.existsSync hexoConfigPath
+
+    @consoleView.clear()
+    @consoleView.warn 'Warning: Please open your Hexo folder as the root project.'
+    false
 
   watch: () ->
     if @currentCommand is 'new'
@@ -124,10 +123,8 @@ module.exports =
     return unless paths
 
     self = this
-    hexoPath = @hexoPath
-
     @watchers = paths.map (postPath) ->
-      watchPath = path.join(hexoPath, postPath)
+      watchPath = path.join atom.project.getPath(), postPath
       return unless fs.existsSync watchPath
 
       do (watchPath) ->

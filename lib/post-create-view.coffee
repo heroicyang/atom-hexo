@@ -20,4 +20,5 @@ class PostCreateView extends View
       postTitle = @postTitleEditor.getText()
       return unless postTitle
 
-      atom.workspaceView.trigger 'hexo:command', cmd: 'new', args: [@layout, postTitle]
+      atom.workspaceView.trigger 'hexo:exec-command', cmd: 'new', args: [@layout, postTitle]
+      @detach()
