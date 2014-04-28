@@ -42,9 +42,10 @@ module.exports =
         if draftFilePath
           draftFileName = path.basename draftFilePath, path.extname(draftFilePath)
 
-          if fs.existsSync path.join 'source/_drafts/', path.basename(draftFilePath)
+          if draftFilePath.indexOf('source/_drafts/') isnt -1
             @execCommand 'publish', [draftFileName]
           else
+            @consoleView.clear()
             @consoleView.warn 'Warning: The article has been published.'
 
     atom.workspaceView.on 'core:cancel core:close', =>
