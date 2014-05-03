@@ -141,6 +141,7 @@ module.exports =
             self.removeWatchers()
 
   removeWatchers: ->
+    return unless @watchers
     while @watchers.length
       @watchers.shift()?.close()
 

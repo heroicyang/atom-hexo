@@ -1,3 +1,6 @@
+### 0.3.3 (2014-05-03)
+- fix bug
+
 ### 0.3.2 (2014-04-28)
 - refactor console-view
 - add `hexo list drafts` command
