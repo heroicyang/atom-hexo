@@ -4,8 +4,6 @@
 
 Provides [Hexo] `new`, `generate`, `deploy`, `publish`, `clean` commands in the Atom Editor.
 
-![A screenshot of Atom-Hexo](http://ww3.sinaimg.cn/large/65cc6c38gw1efvmat8ya8g20vj0kmqjx.gif)
-
 ## Install
 
 ```bash
@@ -16,7 +14,10 @@ You can also install `atom-hexo` by going to the `Packages` section on left hand
 
 ## Usage
 
-Open your favorite terminal, change to your Hexo blog directory, and type `atom` to open the folder as root project. Then use Atom to enjoy writing!
+- Open your Hexo blog folder with the `atom /path/to/your hexo folder` command
+- Or set the `Atom-Hexo` `Current Working Directory` config on the Settings view, you can use `Atom-Hexo` anywhere, once and for all
+
+**Enjoy writing!**
 
 ## Commands
 

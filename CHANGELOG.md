@@ -1,3 +1,7 @@
+### 1.0.0 (2015-05-25)
+- rewrite with ES6(babel)
+- upgrade to Atom 1.0 APIs
+
 ### 0.3.3 (2014-05-03)
 - fix bug
 

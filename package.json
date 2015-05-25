@@ -1,18 +1,20 @@
 {
   "name": "atom-hexo",
   "main": "./lib/hexo",
-  "version": "0.3.3",
+  "version": "1.0.0",
   "description": "Hexo for the Atom Editor.",
-  "activationEvents": [
-    "atom-hexo:new-post",
-    "atom-hexo:new-page",
-    "atom-hexo:new-draft",
-    "atom-hexo:list-drafts",
-    "atom-hexo:publish",
-    "atom-hexo:generate",
-    "atom-hexo:deploy",
-    "atom-hexo:clean"
-  ],
+  "activationCommands": {
+    "atom-workspace": [
+      "atom-hexo:new-post",
+      "atom-hexo:new-page",
+      "atom-hexo:new-draft",
+      "atom-hexo:list-drafts",
+      "atom-hexo:publish",
+      "atom-hexo:generate",
+      "atom-hexo:deploy",
+      "atom-hexo:clean"
+    ]
+  },
   "repository": "https://github.com/heroicyang/atom-hexo",
   "author": {
     "name": "Heroic Yang",
@@ -21,9 +23,25 @@
   },
   "license": "MIT",
   "engines": {
-    "atom": ">0.50.0"
+    "atom": ">=0.174.0 <2.0.0"
   },
   "dependencies": {
-    "fs-plus": "^2.2.1"
+    "atom-space-pen-views": "^2.0.5",
+    "fs-plus": "^2.8.1",
+    "hexo": "^3.0.1",
+    "hexo-cli": "^0.1.4",
+    "minimist": "^1.1.1",
+    "untildify": "^2.0.0"
+  },
+  "consumedServices": {
+    "status-bar": {
+      "versions": {
+        "^1.0.0": "consumeStatusBar"
+      }
+    }
+  },
+  "devDependencies": {
+    "babel-eslint": "^3.1.4",
+    "eslint": "^0.21.1"
   }
 }
