@@ -2,8 +2,6 @@
 //
 // See https://github.com/atom/atom-dark-ui/blob/master/stylesheets/ui-variables.less
 // for a full listing of what's available.
-@import "ui-variables";
-
 .atom-hexo {
   .new-post-form {
     display: -webkit-flex;
@@ -22,17 +20,62 @@
 }
 
 .atom-hexo-status {
-  .status-message:before {
-    font-family: 'Octicons Regular';
-    font-weight: normal;
-    font-style: normal;
+  .status-loader {
     display: inline-block;
     line-height: 1;
-    -webkit-font-smoothing: antialiased;
-    text-decoration: none;
-    font-size: 16px;
     width: 16px;
-    height: 16px;
-    content: "\f09e";
+    height: 11px;
+    margin-right: 5px;
+    background: #0e83cd;
+    color: #fff;
+    text-align: center;
+    position: relative;
+    -webkit-animation: atom-hexo-loader 3s 0s infinite cubic-bezier(.09,.57,.49,.9);
+
+    &:before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 5px solid #0e83cd;
+    }
+
+    &:after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 5px solid #0e83cd;
+    }
+  }
+}
+
+@-webkit-keyframes atom-hexo-loader {
+  25% {
+    -webkit-transform: rotateX(180deg) rotateY(0);
+    transform: rotateX(180deg) rotateY(0);
+  }
+
+  50% {
+    -webkit-transform: rotateX(180deg) rotateY(180deg);
+    transform: rotateX(180deg) rotateY(180deg);
+  }
+
+  75% {
+    -webkit-transform: rotateX(0) rotateY(180deg);
+    transform: rotateX(0) rotateY(180deg);
+  }
+
+  100% {
+    -webkit-transform: rotateX(0) rotateY(0);
+    transform: rotateX(0) rotateY(0);
   }
 }
