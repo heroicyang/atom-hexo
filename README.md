@@ -24,11 +24,8 @@ You can also install `atom-hexo` by going to the `Packages` section on left hand
 Press `cmd-shift-P` to bring up the list of commands, and type:
 
 ```bash
-- hexo new post     # Create a new article, use `post` layout
-- hexo new page     # Create a new article, use `page` layout
-- hexo new draft    # Create a new article, use `draft` layout
-- hexo list drafts  # Lists drafts, and open the selectd
-- hexo publish      # Publish a draft
+- hexo new          # Create a new post
+- hexo publish      # Publish a draft post
 - hexo generate     # Generate static files
 - hexo deploy       # Generate static files and deploy
 - hexo clean        # Clean the cache file and generated files

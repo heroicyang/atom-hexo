@@ -5,10 +5,7 @@
   "description": "Hexo for the Atom Editor.",
   "activationCommands": {
     "atom-workspace": [
-      "atom-hexo:new-post",
-      "atom-hexo:new-page",
-      "atom-hexo:new-draft",
-      "atom-hexo:list-drafts",
+      "atom-hexo:new",
       "atom-hexo:publish",
       "atom-hexo:generate",
       "atom-hexo:deploy",
@@ -27,7 +24,6 @@
   },
   "dependencies": {
     "atom-space-pen-views": "^2.0.5",
-    "fs-plus": "^2.8.1",
     "hexo": "^3.0.1",
     "minimist": "^1.1.1",
     "untildify": "^2.0.0"
