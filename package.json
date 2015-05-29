@@ -1,7 +1,7 @@
 {
   "name": "atom-hexo",
   "main": "./lib/hexo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Hexo for the Atom Editor.",
   "activationCommands": {
     "atom-workspace": [

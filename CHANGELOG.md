@@ -1,3 +1,8 @@
+### 1.1.0 (2015-05-29)
+- add status bar loader
+- create a post can use any layout
+- remove `list-drafts` command, and improve the publish workflow
+
 ### 1.0.0 (2015-05-25)
 - rewrite with ES6(babel)
 - upgrade to Atom 1.0 APIs
