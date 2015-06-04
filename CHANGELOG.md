@@ -1,3 +1,6 @@
+### 1.1.1 (2015-06-04)
+- fix uncaught error when no CWD config
+
 ### 1.1.0 (2015-05-29)
 - add status bar loader
 - create a post can use any layout
